@@ -79,7 +79,7 @@
                 tooltip.transition()
                     .duration(200)
                     .style("opacity", .9);
-                tooltip.html(d.id)
+                tooltip.html(id_name_map[d.id].name)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
             })
@@ -93,8 +93,12 @@
             .datum(topojson.mesh(us, us.objects.states, function (a, b) { return a !== b; }))
             .attr("class", "mesh")
             .attr("d", path);
-
-
+        var name_id_map = {};
+        var id_name_map = {};
+        d3.tsv("https://s3-us-west-2.amazonaws.com/vida-public/geo/us-state-names.tsv", function (obj, index) {
+            name_id_map[obj.name] = obj;
+            id_name_map[obj.id] = obj;
+        })
         function clicked(d) {
             if (active.node() === this) return reset();
             active.classed("active", false);
