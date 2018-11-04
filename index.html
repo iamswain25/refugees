@@ -9,8 +9,12 @@
         }
 
         .feature {
-            fill: black;
+            fill: blue;
             cursor: pointer;
+        }
+
+        .dp_none {
+            display: none;
         }
 
         .feature.active {
@@ -36,6 +40,7 @@
             /* border-radius: 8px; */
             pointer-events: none;
         }
+
         h1 {
             text-align: center;
         }
@@ -54,7 +59,7 @@
 </body>
 
 <script>
-
+    var zoomed = false;
     var width = 960,
         height = 500,
         active = d3.select(null);
@@ -72,20 +77,26 @@
     var tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
-    var g;
+    var g, dot;
     var features = topojson.feature(us, us.objects.states).features
     var name_id_map = {};
     var id_name_map = {};
+    var cities = [];
     async function getMapNamesForId() {
         return new Promise((res, rej) => {
             d3.tsv("js/us-state-names.tsv", function (obj, index) {
                 name_id_map[obj.name] = obj;
                 id_name_map[obj.id] = obj;
             })
+            d3.csv("js/cities.csv", function (obj, index) {
+                // console.log(obj)
+                cities.push(obj)
+                res();
+            })
             d3.csv("js/grouped_by_and_sum.csv", function (obj, index) {
                 var ori = name_id_map[obj.state];
                 Object.assign(ori, obj);
-                res();
+
             })
         })
 
@@ -100,7 +111,7 @@
             .attr("height", height)
             .on("click", reset);
 
-        g = svg.append("g")
+        g = svg.append("g").attr("class", "states")
             .style("stroke-width", "1.5px");
 
         g.selectAll("path")
@@ -113,13 +124,14 @@
                 var opa = id_name_map[d.id].sum / 106605
                 opa = Math.round(opa * 100) / 100
                 var res = `opacity: ${opa};`;
-                if(opa == 0) {
+                if (opa <= 0.1) {
                     res = `opacity: 1; fill: yellow;`
                 }
                 return res;
             })
             .on("click", clicked)
             .on("mouseover", function (d) {
+                if (zoomed) { return }
                 // console.log(d)
                 tooltip.transition()
                     .duration(200)
@@ -129,11 +141,48 @@
                     .style("top", (d3.event.pageY - 28) + "px");
             })
             .on("mouseout", function (d) {
+                // if (!zoomed) { return }
                 tooltip.transition()
                     .duration(500)
                     .style("opacity", 0);
             });
-
+        dot = g.append("g").attr("class", "cities").attr("class", "dp_none")
+        // g
+        dot
+            .selectAll("circle")
+            .data(cities)
+            .enter()
+            .append("circle", ".city")
+            .attr("cx", d => projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[0] : 0)
+            .attr("cy", d => projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[1] : 0)
+            .attr("r", "1px")
+            // .attr("style", d=> {
+            //     var opac = Math.round(d.sum/50330 * 100) /100
+            //     var res = `fill-opacity: ${opac};`
+            //     if(opac < 0.2) {
+            //         res = `fill-opacity: ${opac}; fill:pink;`
+            //     }
+            //     return res
+            // })
+            .attr("stroke", "purple")
+            .attr("fill", "red")
+            .attr("stroke-width", "0.5px")
+            .on("mouseover", function (d) {
+                // if (!zoomed) { return }
+                // console.log(d)
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(`${d.city}: ${d.sum}`)
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
+            })
+            .on("mouseout", function (d) {
+                // if (!zoomed) { return }
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
         g.append("path")
             .datum(topojson.mesh(us, us.objects.states, function (a, b) { return a !== b; }))
             .attr("class", "mesh")
@@ -141,6 +190,11 @@
     }
     function clicked(d) {
         if (active.node() === this) return reset();
+        zoomed = true
+        tooltip.transition()
+            .style("opacity", 0);
+        // dot.attr("opacity", 1)
+        dot.classed("dp_none", false)
         active.classed("active", false);
         active = d3.select(this).classed("active", true);
 
@@ -159,9 +213,10 @@
     }
 
     function reset() {
+        zoomed = false
         active.classed("active", false);
         active = d3.select(null);
-
+        dot.classed("dp_none", true)
         g.transition()
             .duration(750)
             .style("stroke-width", "1.5px")
