@@ -1,226 +1,73 @@
 <!DOCTYPE html>
 
 <head>
-    <meta charset="utf-8">
-    <style>
-        .background {
-            fill: none;
-            pointer-events: all;
-        }
+  <meta charset="utf-8" />
+  <style>
+    .background {
+      fill: none;
+      pointer-events: all;
+    }
 
-        .feature {
-            fill: blue;
-            cursor: pointer;
-        }
+    .feature {
+      fill: blue;
+      cursor: pointer;
+    }
 
-        .dp_none {
-            display: none;
-        }
+    .feature.active {
+      fill: orange;
+    }
 
-        .feature.active {
-            fill: orange;
-        }
+    .mesh {
+      stroke-width: 0.5;
+      fill: none;
+      stroke: yellowgreen;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
-        .mesh {
-            fill: none;
-            stroke: #fff;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
+    div.tooltip {
+      position: absolute;
+      text-align: center;
+      /* width: 60px;
+        height: 28px; */
+      padding: 2px;
+      font: 20px sans-serif;
+      background: lightsteelblue;
+      border: 3px green solid;
+      /* border-radius: 8px; */
+      pointer-events: none;
+    }
 
-        div.tooltip {
-            position: absolute;
-            text-align: center;
-            /* width: 60px;
-            height: 28px; */
-            padding: 2px;
-            font: 20px sans-serif;
-            background: lightsteelblue;
-            border: 3px green solid;
-            /* border-radius: 8px; */
-            pointer-events: none;
-        }
-
-        h1 {
-            text-align: center;
-        }
-    </style>
-    <script src="js/d3.min.js"></script>
-    <script src="js/topojson.min.js"></script>
-    <script src="js/us.js"></script>
-
+    h1 {
+      text-align: center;
+    }
+  </style>
+  <script src="js/d3.min.js"></script>
+  <script src="js/topojson.min.js"></script>
+  <script src="js/us.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 </head>
 
 <body>
-    <div>
-        <h1>Total number of refugees settled down in States in 2002-2018</h1>
-        <svg></svg>
-    </div>
+  <div id="app">
+    <h1>
+      Total number of refugees settled down in
+      {{ zoomed ? "Cities" : "States" }} in 2002-2018
+    </h1>
+    <svg :width="width" :height="height">
+      <rect
+        class="background"
+        :width="width"
+        :height="height"
+        @click="reset"
+      ></rect>
+      <g class="group">
+        <g class="states mesh" />
+        <g class="counties mesh" />
+        <g v-show="zoomed" class="cities"></g>
+      </g>
+    </svg>
+    <div id="tooltip">{{ tooltip }}</div>
+  </div>
 </body>
-
-<script>
-    var zoomed = false;
-    var width = 960,
-        height = 500,
-        active = d3.select(null);
-
-    var projection = d3.geoAlbersUsa()
-        .scale(1000)
-        .translate([width / 2, height / 2]);
-
-    var path = d3.geoPath()
-        .projection(projection);
-
-    var svg = d3.select("svg")
-        .attr("width", width)
-        .attr("height", height);
-    var tooltip = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0);
-    var g, dot;
-    var features = topojson.feature(us, us.objects.states).features
-    var name_id_map = {};
-    var id_name_map = {};
-    var cities = [];
-    async function getMapNamesForId() {
-        return new Promise((res, rej) => {
-            d3.tsv("js/us-state-names.tsv", function (obj, index) {
-                name_id_map[obj.name] = obj;
-                id_name_map[obj.id] = obj;
-            })
-            d3.csv("js/cities.csv", function (obj, index) {
-                // console.log(obj)
-                cities.push(obj)
-                res();
-            })
-            d3.csv("js/grouped_by_and_sum.csv", function (obj, index) {
-                var ori = name_id_map[obj.state];
-                Object.assign(ori, obj);
-
-            })
-        })
-
-    }
-    getMapNamesForId()
-        .then(draw)
-
-    function draw() {
-        svg.append("rect")
-            .attr("class", "background")
-            .attr("width", width)
-            .attr("height", height)
-            .on("click", reset);
-
-        g = svg.append("g").attr("class", "states")
-            .style("stroke-width", "1.5px");
-
-        g.selectAll("path")
-            .data(features)
-            .enter()
-            .append("path")
-            .attr("d", path)
-            .attr("class", "feature")
-            .attr("style", function (d) {
-                var opa = id_name_map[d.id].sum / 106605
-                opa = Math.round(opa * 100) / 100
-                var res = `opacity: ${opa};`;
-                if (opa <= 0.1) {
-                    res = `opacity: 1; fill: yellow;`
-                }
-                return res;
-            })
-            .on("click", clicked)
-            .on("mouseover", function (d) {
-                if (zoomed) { return }
-                // console.log(d)
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html(`${id_name_map[d.id].name}: ${id_name_map[d.id].sum}`)
-                    .style("left", (d3.event.pageX) + "px")
-                    .style("top", (d3.event.pageY - 28) + "px");
-            })
-            .on("mouseout", function (d) {
-                // if (!zoomed) { return }
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-            });
-        dot = g.append("g").attr("class", "cities").attr("class", "dp_none")
-        // g
-        dot
-            .selectAll("circle")
-            .data(cities)
-            .enter()
-            .append("circle", ".city")
-            .attr("cx", d => projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[0] : 0)
-            .attr("cy", d => projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[1] : 0)
-            .attr("r", "1px")
-            // .attr("style", d=> {
-            //     var opac = Math.round(d.sum/50330 * 100) /100
-            //     var res = `fill-opacity: ${opac};`
-            //     if(opac < 0.2) {
-            //         res = `fill-opacity: ${opac}; fill:pink;`
-            //     }
-            //     return res
-            // })
-            .attr("stroke", "purple")
-            .attr("fill", "red")
-            .attr("stroke-width", "0.5px")
-            .on("mouseover", function (d) {
-                // if (!zoomed) { return }
-                // console.log(d)
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html(`${d.city}: ${d.sum}`)
-                    .style("left", (d3.event.pageX) + "px")
-                    .style("top", (d3.event.pageY - 28) + "px");
-            })
-            .on("mouseout", function (d) {
-                // if (!zoomed) { return }
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-            });
-        g.append("path")
-            .datum(topojson.mesh(us, us.objects.states, function (a, b) { return a !== b; }))
-            .attr("class", "mesh")
-            .attr("d", path);
-    }
-    function clicked(d) {
-        if (active.node() === this) return reset();
-        zoomed = true
-        tooltip.transition()
-            .style("opacity", 0);
-        // dot.attr("opacity", 1)
-        dot.classed("dp_none", false)
-        active.classed("active", false);
-        active = d3.select(this).classed("active", true);
-
-        var bounds = path.bounds(d),
-            dx = bounds[1][0] - bounds[0][0],
-            dy = bounds[1][1] - bounds[0][1],
-            x = (bounds[0][0] + bounds[1][0]) / 2,
-            y = (bounds[0][1] + bounds[1][1]) / 2,
-            scale = .9 / Math.max(dx / width, dy / height),
-            translate = [width / 2 - scale * x, height / 2 - scale * y];
-
-        g.transition()
-            .duration(750)
-            .style("stroke-width", 1.5 / scale + "px")
-            .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
-    }
-
-    function reset() {
-        zoomed = false
-        active.classed("active", false);
-        active = d3.select(null);
-        dot.classed("dp_none", true)
-        g.transition()
-            .duration(750)
-            .style("stroke-width", "1.5px")
-            .attr("transform", "");
-    }
-
-</script>
+<script src="js/App.js"></script>
