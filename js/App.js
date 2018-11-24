@@ -74,8 +74,8 @@ var app = new Vue({
           opa = Math.round(opa * 100) / 100;
           return `fill-opacity: ${opa};`;
         })
-        .on("dblclick", this.clicked)
-        .on("click", d => {
+        .on("click", this.clicked)
+        .on("mouseover", d => {
           if (this.zoomed) {
             return;
           }
@@ -109,22 +109,19 @@ var app = new Vue({
           projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[1] : 0
         )
         .attr("r", d => (d.sum > 9 ? Math.sqrt(d.sum) / 10 : 0.3))
-        .attr("fill", "red")
+        .attr("fill", "green")
         .attr("cursor", "pointer")
         .attr("fill-opacity", 0.2)
         .on("click", (d, id, arr) => {
-          this.cityActive ? (this.cityActive.style.fill = "red") : null;
+          this.cityActive ? (this.cityActive.style.fill = "green") : null;
           this.cityActive = arr[id];
-          this.cityActive.style.fill = "green";
+          this.cityActive.style.fill = "red";
           this.tooltip
             .html(`${d.city}: ${d.sum}`)
             .transition()
             .style("opacity", 0.9)
             .style("left", d3.event.pageX - 100 + "px")
             .style("top", d3.event.pageY - 80 + "px");
-        })
-        .on("dblclick", (d, id, arr) => {
-          this.reset();
         });
 
       console.timeEnd("draw");
