@@ -2,6 +2,7 @@ var app = new Vue({
   el: "#app",
   data: () => ({
     toggleCity: false,
+    toggleAgency: false,
     width: window.innerWidth - 30,
     height: window.innerHeight - 100,
     id_name_map: {},

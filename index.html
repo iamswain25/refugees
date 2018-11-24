@@ -44,6 +44,8 @@
     <h1>
       Total number of refugees settled down in
       {{ toggleCity ? "Cities" : "States" }} in 2002-2018
+      <input type="checkbox" v-model="toggleCity" id="toggleCity"><label for="toggleCity">city</label></input>
+      <input type="checkbox" v-model="toggleAgency" id="toggleAgency"><label for="toggleAgency">agency</label></input>
     </h1>
     <svg :width="width" :height="height">
       <rect
@@ -56,7 +58,7 @@
         <g class="states mesh" :style="!toggleCity ? `cursor: pointer;` : ``" />
         <g class="counties mesh" />
         <g v-show="toggleCity" class="cities"></g>
-        <g v-show="toggleCity" class="agencies"></g>
+        <g v-show="toggleAgency" class="agencies"></g>
       </g>
     </svg>
   </div>
