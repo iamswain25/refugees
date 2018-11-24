@@ -10,7 +10,6 @@
 
     .feature {
       fill: blue;
-      cursor: pointer;
     }
 
     .feature.active {
@@ -62,12 +61,11 @@
         @click="reset"
       ></rect>
       <g class="group">
-        <g class="states mesh" />
+        <g class="states mesh" :style="!zoomed ? `cursor: pointer;` : ``" />
         <g class="counties mesh" />
         <g v-show="zoomed" class="cities"></g>
       </g>
     </svg>
-    <div id="tooltip">{{ tooltip }}</div>
   </div>
 </body>
 <script src="js/App.js"></script>

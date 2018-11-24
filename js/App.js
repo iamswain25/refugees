@@ -8,7 +8,9 @@ var app = new Vue({
     id_name_map: {},
     cities: [],
     active: d3.select(null),
-    path: null
+    path: null,
+    tooltip: null,
+    cityActive: null
   }),
   created() {
     console.time("created");
@@ -19,7 +21,8 @@ var app = new Vue({
   },
   methods: {
     updateWindowDimensions() {
-      console.log(this);
+      this.width = window.innerWidth - 30;
+      this.height = window.innerHeight - 100;
     },
     async getMapNamesForId() {
       console.time("getMapNamesForId");
@@ -54,16 +57,14 @@ var app = new Vue({
         .translate([width / 2, height / 2]);
       const path = d3.geoPath().projection(projection);
       this.path = path;
-      var tooltip = d3
+      this.tooltip = d3
         .select("body")
         .append("div")
         .attr("class", "tooltip")
         .style("fill-opacity", 0);
-      const statesFeature = topojson.feature(us, us.objects.states).features;
-
       d3.select("g.states")
         .selectAll("path")
-        .data(statesFeature)
+        .data(topojson.feature(us, us.objects.states).features)
         .enter()
         .append("path")
         .attr("d", path)
@@ -71,35 +72,24 @@ var app = new Vue({
         .attr("style", d => {
           var opa = this.id_name_map[d.id].sum / 106605;
           opa = Math.round(opa * 100) / 100;
-          var res = `fill-opacity: ${opa};`;
-          //   if (opa <= 0.1) {
-          //     res = `opacity: 0.5; fill: yellow;`;
-          //   }
-          return res;
+          return `fill-opacity: ${opa};`;
         })
-        .on("click", this.clicked)
-        .on("mouseover", d => {
+        .on("dblclick", this.clicked)
+        .on("click", d => {
           if (this.zoomed) {
             return;
           }
-          tooltip
-            .transition()
-            .duration(200)
-            .style("fill-opacity", 0.9);
-          tooltip
+          this.tooltip
             .html(
               `${this.id_name_map[d.id].name}: ${this.id_name_map[d.id].sum}`
             )
-            .style("left", d3.event.pageX + "px")
-            .style("top", d3.event.pageY - 28 + "px");
-        })
-        .on("mouseout", function(d) {
-          // if (!zoomed) { return }
-          tooltip
             .transition()
-            .duration(500)
-            .style("opacity", 0);
+            .duration(200)
+            .style("opacity", 0.9)
+            .style("left", d3.event.pageX - 100 + "px")
+            .style("top", d3.event.pageY - 80 + "px");
         });
+
       d3.select("g.counties")
         .selectAll("path")
         .data(topojson.feature(us, us.objects.counties).features)
@@ -118,35 +108,24 @@ var app = new Vue({
         .attr("cy", d =>
           projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[1] : 0
         )
-        .attr("r", "1px")
-        .attr("stroke", "purple")
+        .attr("r", d => (d.sum > 9 ? Math.sqrt(d.sum) / 10 : 0.3))
         .attr("fill", "red")
-        .attr("stroke-width", "0.5px")
-        .on("mouseover", function(d) {
-          tooltip
-            .transition()
-            .duration(200)
-            .style("opacity", 0.9);
-          tooltip
+        .attr("cursor", "pointer")
+        .attr("fill-opacity", 0.2)
+        .on("click", (d, id, arr) => {
+          this.cityActive ? (this.cityActive.style.fill = "red") : null;
+          this.cityActive = arr[id];
+          this.cityActive.style.fill = "green";
+          this.tooltip
             .html(`${d.city}: ${d.sum}`)
-            .style("left", d3.event.pageX + "px")
-            .style("top", d3.event.pageY - 28 + "px");
-        })
-        .on("mouseout", function(d) {
-          tooltip
             .transition()
-            .duration(500)
-            .style("opacity", 0);
+            .style("opacity", 0.9)
+            .style("left", d3.event.pageX - 100 + "px")
+            .style("top", d3.event.pageY - 80 + "px");
+        })
+        .on("dblclick", (d, id, arr) => {
+          this.reset();
         });
-      //   d3.select("g.states")
-      //     .append("path")
-      //     .datum(
-      //       topojson.mesh(us, us.objects.states, function(a, b) {
-      //         return a !== b;
-      //       })
-      //     )
-      //     .attr("class", "mesh")
-      //     .attr("d", path);
 
       console.timeEnd("draw");
     },
@@ -159,6 +138,7 @@ var app = new Vue({
         .duration(750)
         .style("stroke-width", "1.5px")
         .attr("transform", "");
+      this.tooltip.style("opacity", 0).transition();
     },
     clicked(d, id, arr) {
       const node = arr[id];
@@ -170,7 +150,6 @@ var app = new Vue({
       this.active.classed("active", false);
       this.active = d3.select(node).classed("active", true);
       const bounds = this.path.bounds(d);
-      console.log(bounds);
       const dx = bounds[1][0] - bounds[0][0],
         dy = bounds[1][1] - bounds[0][1],
         x = (bounds[0][0] + bounds[1][0]) / 2,
