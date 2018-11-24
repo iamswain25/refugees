@@ -4,7 +4,6 @@ var app = new Vue({
     zoomed: false,
     width: window.innerWidth - 30,
     height: window.innerHeight - 100,
-    name_id_map: {},
     id_name_map: {},
     cities: [],
     active: d3.select(null),
@@ -27,16 +26,16 @@ var app = new Vue({
     async getMapNamesForId() {
       console.time("getMapNamesForId");
       try {
+        const name_id_map = {};
         await d3.tsv("js/us-state-names.tsv", (obj, index) => {
-          this.name_id_map[obj.name] = obj;
+          name_id_map[obj.name] = obj;
           this.id_name_map[obj.id] = obj;
         });
-        await d3.csv("js/cities.csv", (obj, index) => {
+        await d3.csv("refined_data/cities_sum_geocode.csv", (obj, index) => {
           this.cities.push(obj);
         });
-        await d3.csv("js/grouped_by_and_sum.csv", (obj, index) => {
-          var ori = this.name_id_map[obj.state];
-          Object.assign(ori, obj);
+        await d3.csv("refined_data/states_sum.csv", (obj, index) => {
+          Object.assign(name_id_map[obj.state], obj);
         });
       } catch (error) {
         console.log(error);
@@ -48,7 +47,6 @@ var app = new Vue({
     },
     draw() {
       console.time("draw");
-      // console.log(this.state);
       const width = this.width;
       const height = this.height;
       var projection = d3
