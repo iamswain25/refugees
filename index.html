@@ -7,15 +7,12 @@
       fill: none;
       pointer-events: all;
     }
-
     .feature {
       fill: blue;
     }
-
     .feature.active {
       fill: yellow;
     }
-
     .mesh {
       stroke-width: 0.5;
       fill: none;
@@ -23,20 +20,15 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
-
     div.tooltip {
       position: absolute;
       text-align: center;
-      /* width: 60px;
-        height: 28px; */
       padding: 2px;
       font: 20px sans-serif;
       background: lightsteelblue;
       border: 3px green solid;
-      /* border-radius: 8px; */
       pointer-events: none;
     }
-
     h1 {
       text-align: center;
     }
@@ -51,7 +43,7 @@
   <div id="app">
     <h1>
       Total number of refugees settled down in
-      {{ zoomed ? "Cities" : "States" }} in 2002-2018
+      {{ toggleCity ? "Cities" : "States" }} in 2002-2018
     </h1>
     <svg :width="width" :height="height">
       <rect
@@ -61,9 +53,10 @@
         @click="reset"
       ></rect>
       <g class="group">
-        <g class="states mesh" :style="!zoomed ? `cursor: pointer;` : ``" />
+        <g class="states mesh" :style="!toggleCity ? `cursor: pointer;` : ``" />
         <g class="counties mesh" />
-        <g v-show="zoomed" class="cities"></g>
+        <g v-show="toggleCity" class="cities"></g>
+        <g v-show="toggleCity" class="agencies"></g>
       </g>
     </svg>
   </div>

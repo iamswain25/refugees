@@ -1,11 +1,12 @@
 var app = new Vue({
   el: "#app",
   data: () => ({
-    zoomed: false,
+    toggleCity: false,
     width: window.innerWidth - 30,
     height: window.innerHeight - 100,
     id_name_map: {},
     cities: [],
+    agencies: [],
     active: d3.select(null),
     path: null,
     tooltip: null,
@@ -36,6 +37,9 @@ var app = new Vue({
         });
         await d3.csv("refined_data/states_sum.csv", (obj, index) => {
           Object.assign(name_id_map[obj.state], obj);
+        });
+        await d3.csv("refined_data/agencies.csv", (obj, index) => {
+          this.agencies.push(obj);
         });
       } catch (error) {
         console.log(error);
@@ -74,7 +78,7 @@ var app = new Vue({
         })
         .on("click", this.clicked)
         .on("mouseover", d => {
-          if (this.zoomed) {
+          if (this.toggleCity) {
             return;
           }
           this.tooltip
@@ -121,11 +125,33 @@ var app = new Vue({
             .style("left", d3.event.pageX - 100 + "px")
             .style("top", d3.event.pageY - 80 + "px");
         });
-
+      d3.select("g.agencies")
+        .selectAll("circle")
+        .data(this.agencies)
+        .enter()
+        .append("circle", ".agency")
+        .attr("cx", d =>
+          projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[0] : 0
+        )
+        .attr("cy", d =>
+          projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[1] : 0
+        )
+        .attr("r", 1.5)
+        .attr("fill", "purple")
+        .attr("cursor", "pointer")
+        .attr("fill-opacity", 0.9)
+        .on("click", (d, id, arr) => {
+          this.tooltip
+            .html(`${d.agency}: ${d.address}`)
+            .transition()
+            .style("opacity", 0.9)
+            .style("left", d3.event.pageX - 100 + "px")
+            .style("top", d3.event.pageY - 80 + "px");
+        });
       console.timeEnd("draw");
     },
     reset() {
-      this.zoomed = false;
+      this.toggleCity = false;
       this.active.classed("active", false);
       this.active = d3.select(null);
       d3.select("g.group")
@@ -141,7 +167,7 @@ var app = new Vue({
       if (this.active.node() === node) {
         return this.reset();
       }
-      this.zoomed = true;
+      this.toggleCity = true;
       this.active.classed("active", false);
       this.active = d3.select(node).classed("active", true);
       const bounds = this.path.bounds(d);
