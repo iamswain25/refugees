@@ -1,1 +1,12 @@
-<iframe src="https://iamswain25.github.io/refugees/" width="800" height="600"></iframe>
+* Demo
+
+https://iamswain25.github.io/refugees/
+
+* Tech Stack
+
+- vue.js
+- d3.js
+
+* Data
+
+- US Government
