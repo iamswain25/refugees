@@ -41,7 +41,7 @@
       border: 3px green solid;
       /* pointer-events: none; */
     }
-    h1 {
+    h1, h2 {
       text-align: center;
     }
   </style>
@@ -74,10 +74,10 @@
     <h1>
       Total number of refugees settled down in
       {{ toggleCity ? "Cities" : "States" }} in 2002-2018
-      <input type="checkbox" v-model="toggleCity" id="toggleCity"><label for="toggleCity" class="cities">city</label></input>
-      <input type="checkbox" v-model="toggleAgency" id="toggleAgency"><label for="toggleAgency" class="agencies">agency</label></input>
-      <input type="checkbox" v-model="toggleNgo" id="toggleNgo"><label for="toggleNgo" class="ngo">NGO</label></input>
     </h1>
+    <h2><input type="checkbox" v-model="toggleCity" id="toggleCity"><label for="toggleCity" class="cities">City</label></input>
+      <input type="checkbox" v-model="toggleAgency" id="toggleAgency"><label for="toggleAgency" class="agencies">Agency</label></input>
+      <input type="checkbox" v-model="toggleNgo" id="toggleNgo"><label for="toggleNgo" class="ngo">NGO</label></input></h2>
     <svg :width="width" :height="height">
       <rect
         class="background"

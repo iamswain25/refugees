@@ -5,7 +5,7 @@ var app = new Vue({
     toggleAgency: false,
     toggleNgo: false,
     width: window.innerWidth - 30,
-    height: window.innerHeight - 100,
+    height: window.innerHeight - 150,
     id_name_map: {},
     cities: [],
     agencies: [],
@@ -25,7 +25,7 @@ var app = new Vue({
   methods: {
     updateWindowDimensions() {
       this.width = window.innerWidth - 30;
-      this.height = window.innerHeight - 100;
+      this.height = window.innerHeight - 200;
     },
     async getMapNamesForId() {
       console.time("getMapNamesForId");
@@ -69,7 +69,7 @@ var app = new Vue({
         .select("body")
         .append("div")
         .attr("class", "tooltip")
-        .style("fill-opacity", 0);
+        .style("opacity", 0);
       d3.select("g.states")
         .selectAll("path")
         .data(topojson.feature(us, us.objects.states).features)
@@ -111,7 +111,7 @@ var app = new Vue({
           this.cityActive = arr[id];
           this.cityActive.style.fill = "red";
           this.tooltip
-            .html(`${d.city}: ${d.sum}`)
+            .html(`<span class="cities">City</span> ${d.city}: ${d.sum}`)
             .transition()
             .style("opacity", 0.9)
             .style("left", d3.event.pageX - 100 + "px")
@@ -206,7 +206,7 @@ var app = new Vue({
         .style("stroke-width", 1.5 / scale + "px")
         .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
       this.tooltip
-        .html(`State ${this.id_name_map[d.id].name}: ${this.id_name_map[d.id].sum}`)
+        .html(`<span style="color: blue;">State</span> ${this.id_name_map[d.id].name}: ${this.id_name_map[d.id].sum}`)
         .transition()
         .duration(200)
         .style("opacity", 0.9)
