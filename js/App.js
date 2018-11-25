@@ -153,6 +153,7 @@ var app = new Vue({
     },
     reset() {
       this.toggleCity = false;
+      this.toggleAgency = false;
       this.active.classed("active", false);
       this.active = d3.select(null);
       d3.select("g.group")
@@ -169,6 +170,7 @@ var app = new Vue({
         return this.reset();
       }
       this.toggleCity = true;
+      this.toggleAgency = true;
       this.active.classed("active", false);
       this.active = d3.select(node).classed("active", true);
       const bounds = this.path.bounds(d);
