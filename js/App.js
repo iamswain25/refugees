@@ -134,7 +134,7 @@ var app = new Vue({
         .attr("fill-opacity", 0.9)
         .on("click", (d, id, arr) => {
           this.tooltip
-            .html(`Agency ${d.agency}: ${d.address}`)
+            .html(`<span class="agencies">Agency</span> ${d.agency}: ${d.address}`)
             .transition()
             .style("opacity", 0.9)
             .style("left", d3.event.pageX - 100 + "px")
@@ -160,7 +160,7 @@ var app = new Vue({
           const link =
             d.website.length > 0 ? `<a href="${d.website}">link</a>` : "";
           this.tooltip
-            .html(`NGO ${d.name}: ${link}`)
+            .html(`<span class="ngo">NGO</span> ${d.name}: ${link}`)
             .transition()
             .style("opacity", 0.9)
             .style("left", d3.event.pageX - 100 + "px")

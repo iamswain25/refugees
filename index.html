@@ -23,6 +23,15 @@
     .counties {
       pointer-events: none;
     }
+    .ngo {
+      color: red;
+    }
+    .agencies {
+      color: purple;
+    }
+    .cities {
+      color: green;
+    }
     div.tooltip {
       position: absolute;
       text-align: center;
@@ -47,9 +56,9 @@
     <h1>
       Total number of refugees settled down in
       {{ toggleCity ? "Cities" : "States" }} in 2002-2018
-      <input type="checkbox" v-model="toggleCity" id="toggleCity"><label for="toggleCity">city</label></input>
-      <input type="checkbox" v-model="toggleAgency" id="toggleAgency"><label for="toggleAgency">agency</label></input>
-      <input type="checkbox" v-model="toggleNgo" id="toggleNgo"><label for="toggleNgo">NGO</label></input>
+      <input type="checkbox" v-model="toggleCity" id="toggleCity"><label for="toggleCity" class="cities">city</label></input>
+      <input type="checkbox" v-model="toggleAgency" id="toggleAgency"><label for="toggleAgency" class="agencies">agency</label></input>
+      <input type="checkbox" v-model="toggleNgo" id="toggleNgo"><label for="toggleNgo" class="ngo">NGO</label></input>
     </h1>
     <svg :width="width" :height="height">
       <rect
