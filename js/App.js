@@ -5,7 +5,7 @@ var app = new Vue({
     toggleAgency: false,
     toggleNgo: false,
     width: window.innerWidth - 30,
-    height: window.innerHeight - 150,
+    height: window.innerHeight - 160,
     id_name_map: {},
     cities: [],
     agencies: [],
@@ -25,7 +25,7 @@ var app = new Vue({
   methods: {
     updateWindowDimensions() {
       this.width = window.innerWidth - 30;
-      this.height = window.innerHeight - 200;
+      this.height = window.innerHeight - 160;
     },
     async getMapNamesForId() {
       console.time("getMapNamesForId");
