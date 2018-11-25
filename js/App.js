@@ -3,11 +3,13 @@ var app = new Vue({
   data: () => ({
     toggleCity: false,
     toggleAgency: false,
+    toggleNgo: false,
     width: window.innerWidth - 30,
     height: window.innerHeight - 100,
     id_name_map: {},
     cities: [],
     agencies: [],
+    ngo: [],
     active: d3.select(null),
     path: null,
     tooltip: null,
@@ -41,6 +43,9 @@ var app = new Vue({
         });
         await d3.csv("refined_data/agencies.csv", (obj, index) => {
           this.agencies.push(obj);
+        });
+        await d3.csv("refined_data/ngo.csv", (obj, index) => {
+          this.ngo.push(obj);
         });
       } catch (error) {
         console.log(error);
@@ -77,21 +82,7 @@ var app = new Vue({
           opa = Math.round(opa * 100) / 100;
           return `fill-opacity: ${opa};`;
         })
-        .on("click", this.clicked)
-        .on("mouseover", d => {
-          if (this.toggleCity) {
-            return;
-          }
-          this.tooltip
-            .html(
-              `${this.id_name_map[d.id].name}: ${this.id_name_map[d.id].sum}`
-            )
-            .transition()
-            .duration(200)
-            .style("opacity", 0.9)
-            .style("left", d3.event.pageX - 100 + "px")
-            .style("top", d3.event.pageY - 80 + "px");
-        });
+        .on("click", this.clicked);
 
       d3.select("g.counties")
         .selectAll("path")
@@ -143,7 +134,33 @@ var app = new Vue({
         .attr("fill-opacity", 0.9)
         .on("click", (d, id, arr) => {
           this.tooltip
-            .html(`${d.agency}: ${d.address}`)
+            .html(`Agency ${d.agency}: ${d.address}`)
+            .transition()
+            .style("opacity", 0.9)
+            .style("left", d3.event.pageX - 100 + "px")
+            .style("top", d3.event.pageY - 80 + "px");
+        });
+      d3.select("g.ngo")
+        .selectAll("circle")
+        .data(this.ngo)
+        .enter()
+        .append("circle", ".agency")
+        .attr("cx", d =>
+          projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[0] : 0
+        )
+        .attr("cy", d =>
+          projection([d.lng, d.lat]) ? projection([d.lng, d.lat])[1] : 0
+        )
+        .attr("r", 1.5)
+        .attr("fill", "red")
+        .attr("cursor", "pointer")
+        .attr("fill-opacity", 0.9)
+        .on("click", (d, id, arr) => {
+          console.log(d);
+          const link =
+            d.website.length > 0 ? `<a href="${d.website}">link</a>` : "";
+          this.tooltip
+            .html(`NGO ${d.name}: ${link}`)
             .transition()
             .style("opacity", 0.9)
             .style("left", d3.event.pageX - 100 + "px")
@@ -154,6 +171,7 @@ var app = new Vue({
     reset() {
       this.toggleCity = false;
       this.toggleAgency = false;
+      this.toggleNgo = false;
       this.active.classed("active", false);
       this.active = d3.select(null);
       d3.select("g.group")
@@ -171,6 +189,7 @@ var app = new Vue({
       }
       this.toggleCity = true;
       this.toggleAgency = true;
+      this.toggleNgo = true;
       this.active.classed("active", false);
       this.active = d3.select(node).classed("active", true);
       const bounds = this.path.bounds(d);
@@ -186,6 +205,13 @@ var app = new Vue({
         .duration(750)
         .style("stroke-width", 1.5 / scale + "px")
         .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+      this.tooltip
+        .html(`State ${this.id_name_map[d.id].name}: ${this.id_name_map[d.id].sum}`)
+        .transition()
+        .duration(200)
+        .style("opacity", 0.9)
+        .style("left", d3.event.pageX - 100 + "px")
+        .style("top", d3.event.pageY - 80 + "px");
     }
   }
 });

@@ -20,6 +20,9 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
+    .counties {
+      pointer-events: none;
+    }
     div.tooltip {
       position: absolute;
       text-align: center;
@@ -27,7 +30,7 @@
       font: 20px sans-serif;
       background: lightsteelblue;
       border: 3px green solid;
-      pointer-events: none;
+      /* pointer-events: none; */
     }
     h1 {
       text-align: center;
@@ -46,6 +49,7 @@
       {{ toggleCity ? "Cities" : "States" }} in 2002-2018
       <input type="checkbox" v-model="toggleCity" id="toggleCity"><label for="toggleCity">city</label></input>
       <input type="checkbox" v-model="toggleAgency" id="toggleAgency"><label for="toggleAgency">agency</label></input>
+      <input type="checkbox" v-model="toggleNgo" id="toggleNgo"><label for="toggleNgo">NGO</label></input>
     </h1>
     <svg :width="width" :height="height">
       <rect
@@ -59,6 +63,7 @@
         <g class="counties mesh" />
         <g v-show="toggleCity" class="cities"></g>
         <g v-show="toggleAgency" class="agencies"></g>
+        <g v-show="toggleNgo" class="ngo"></g>
       </g>
     </svg>
   </div>
